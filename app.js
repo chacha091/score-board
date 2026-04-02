@@ -35,9 +35,7 @@ const elements = {
   workspace: document.querySelector("#workspace"),
   answerGrid: document.querySelector("#answerGrid"),
   answerSheetPanel: document.querySelector(".answer-sheet-panel"),
-  statusPanel: document.querySelector(".status-panel"),
   answeredCount: document.querySelector("#answeredCount"),
-  footerAnsweredCount: document.querySelector("#footerAnsweredCount"),
   gradingPanel: document.querySelector("#gradingPanel"),
   roundNameInput: document.querySelector("#roundNameInput"),
   answerKeyInput: document.querySelector("#answerKeyInput"),
@@ -142,7 +140,6 @@ function renderAnswerSelection() {
 
   const answered = Object.keys(state.userAnswers).length;
   elements.answeredCount.textContent = String(answered);
-  elements.footerAnsweredCount.textContent = String(answered);
   saveState();
 }
 
@@ -585,6 +582,14 @@ function renderManualRounds() {
       <tbody>${rows}</tbody>
     </table>
   `;
+}
+
+function showGradingPanel(visible) {
+  state.omrVisible = !visible;
+  elements.gradingPanel.classList.toggle("hidden", !visible);
+  elements.answerSheetPanel.classList.toggle("hidden", visible);
+  document.querySelector("#openGradingButton").textContent = visible ? "답안지 보기" : "채점하기";
+  saveState();
 }
 
 function renderResult() {

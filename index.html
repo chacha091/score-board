@@ -46,7 +46,7 @@
               type="text"
               placeholder="예: 실전 모의고사 1회"
             />
-            <p class="help-copy">정답을 숫자로 입력하세요. 쉼표 또는 공백 모두 허용합니다.</p>
+            <p class="help-copy">정답은 숫자로 입력하세요. 쉼표나 공백 모두 사용할 수 있습니다.</p>
             <p class="example-copy">예: 1,2,3,4,5 또는 1 2 3 4 5</p>
             <textarea
               id="answerKeyInput"
@@ -72,6 +72,7 @@
             </div>
             <div id="answerGrid" class="answer-grid"></div>
           </section>
+
         </section>
 
         <aside class="utility-column">
@@ -111,7 +112,7 @@
             <div id="drawPanel" class="tab-panel">
               <div class="inline-actions">
                 <button id="clearCanvasButton" class="secondary-button small-button" type="button">
-                  캔버스 지우기
+                  전체 지우기
                 </button>
               </div>
               <canvas id="drawCanvas" width="360" height="260"></canvas>
@@ -164,7 +165,7 @@
             <section class="panel">
               <div class="panel-title-row">
                 <div>
-                  <h3>영역별 결과표</h3>
+                  <h3>영역별 결과</h3>
                 </div>
               </div>
               <div id="areaSummaryList" class="area-summary-list empty-state">아직 채점 결과가 없습니다.</div>
