@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>OMR 채점 및 결과 분석</title>
+    <title>score board</title>
     <link rel="icon" href="./favicon.ico" type="image/x-icon" />
     <link
       rel="stylesheet"
@@ -18,7 +18,7 @@
         <section class="spacer-column">
           <div class="hero-actions mode-switch-row">
             <button id="solveModeButton" class="ghost-button active" type="button">OMR 모드</button>
-            <button id="resultModeButton" class="ghost-button" type="button">결과 집중 모드</button>
+            <button id="resultModeButton" class="ghost-button" type="button">결과 모드</button>
           </div>
         </section>
 
@@ -64,7 +64,6 @@
             <div class="panel-title-row">
               <div>
                 <p class="section-label">OMR</p>
-                <h3>100문항 답안 체크</h3>
               </div>
               <div class="status-pill">
                 <span id="answeredCount">0</span>
@@ -73,10 +72,6 @@
             </div>
             <div id="answerGrid" class="answer-grid"></div>
           </section>
-
-          <footer class="panel status-panel">
-            <p>표시한 답안: <strong><span id="footerAnsweredCount">0</span> / 100</strong></p>
-          </footer>
         </section>
 
         <aside class="utility-column">
@@ -132,7 +127,7 @@
         <section id="resultPanel" class="result-panel hidden">
           <div class="panel result-hero">
             <div>
-              <h2>SKCT 채점 결과</h2>
+              <h2>채점 결과</h2>
               <p id="roundNameDisplay" class="round-name-display">회차명 미입력</p>
             </div>
             <div class="result-actions">
@@ -189,10 +184,9 @@
           <section class="panel manual-round-panel">
             <div class="panel-title-row">
               <div>
-                <h3>수동 회차 추가</h3>
+                <h3>회차 추가</h3>
               </div>
             </div>
-            <p class="manual-round-help">버튼을 눌러 팝업에서 회차 정보를 입력하세요.</p>
           </section>
 
           <section class="panel manual-history-panel">
@@ -210,7 +204,7 @@
         <div class="panel modal-panel" role="dialog" aria-modal="true" aria-labelledby="manualRoundModalTitle">
           <div class="panel-title-row">
             <div>
-              <h3 id="manualRoundModalTitle">수동 회차 추가</h3>
+              <h3 id="manualRoundModalTitle">회차 추가</h3>
             </div>
             <button id="closeManualRoundModalButton" class="text-button" type="button">닫기</button>
           </div>
