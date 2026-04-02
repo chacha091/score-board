@@ -3,7 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SKCT OMR 채점 및 결과 분석</title>
+    <title>OMR 채점 및 결과 분석</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/fonts-archive/AppleSDGothicNeo/subsets/AppleSDGothicNeo-dynamic-subset.css"
+      type="text/css"
+    />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
@@ -85,14 +90,11 @@
             <div class="panel-title-row">
               <div>
                 <p class="section-label">Timer</p>
-                <h3>15분 집중 타이머</h3>
               </div>
-              <button id="helpTimerButton" class="icon-button" type="button" title="타이머 안내">?</button>
             </div>
             <div class="timer-display">
               <span id="timerMinutes">15</span>분 <span id="timerSeconds">00</span>초
             </div>
-            <p class="timer-subcopy">OMR 풀이용 고정 타이머입니다.</p>
             <div class="panel-actions compact-actions">
               <button id="startTimerButton" class="success-button" type="button">시작</button>
               <button id="pauseTimerButton" class="secondary-button" type="button">일시정지</button>
@@ -199,6 +201,44 @@
               <div id="comparisonGrid" class="comparison-grid"></div>
             </section>
           </div>
+
+          <section class="panel manual-round-panel">
+            <div class="panel-title-row">
+              <div>
+                <p class="section-label">Manual Entry</p>
+                <h3>수동 회차 추가</h3>
+              </div>
+            </div>
+            <div class="manual-round-form">
+              <div class="manual-round-header">
+                <div>
+                  <label class="field-label" for="manualRoundNameInput">회차명</label>
+                  <input
+                    id="manualRoundNameInput"
+                    class="text-input"
+                    type="text"
+                    placeholder="예: 실전 모의고사 3회"
+                  />
+                </div>
+                <div class="manual-round-actions">
+                  <button id="saveManualRoundButton" class="primary-button" type="button">회차 저장</button>
+                  <button id="clearManualRoundButton" class="secondary-button" type="button">입력 지우기</button>
+                </div>
+              </div>
+              <div id="manualAreaForm" class="manual-area-grid"></div>
+              <p id="manualRoundError" class="error-copy" role="alert"></p>
+            </div>
+          </section>
+
+          <section class="panel manual-history-panel">
+            <div class="panel-title-row">
+              <div>
+                <p class="section-label">Round History</p>
+                <h3>저장된 수동 회차</h3>
+              </div>
+            </div>
+            <div id="manualRoundList" class="manual-round-list empty-state">아직 저장된 수동 회차가 없습니다.</div>
+          </section>
         </section>
       </main>
     </div>

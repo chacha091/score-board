@@ -44,8 +44,8 @@ button {
 }
 
 .app-shell {
-  width: min(1480px, calc(100vw - 32px));
-  margin: 20px auto 28px;
+  width: min(1240px, calc(100vw - 20px));
+  margin: 10px auto 18px;
 }
 
 .hero {
@@ -53,7 +53,7 @@ button {
   justify-content: space-between;
   gap: 20px;
   align-items: flex-end;
-  margin-bottom: 18px;
+  margin-bottom: 12px;
 }
 
 .eyebrow,
@@ -192,12 +192,13 @@ button {
 
 .workspace {
   display: grid;
-  gap: 18px;
+  gap: 12px;
   align-items: start;
 }
 
 .workspace.solve-layout {
-  grid-template-columns: minmax(420px, 450px) minmax(340px, 420px);
+  grid-template-columns: 390px minmax(300px, 340px);
+  justify-content: start;
 }
 
 .workspace.result-layout {
@@ -214,7 +215,7 @@ button {
 .result-panel {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 12px;
 }
 
 .panel {
@@ -233,7 +234,7 @@ button {
 .result-hero,
 .metric-panel,
 .result-detail-grid > .panel {
-  padding: 24px;
+  padding: 18px;
 }
 
 .panel-header,
@@ -314,17 +315,17 @@ button {
 .answer-grid {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  max-height: 980px;
+  gap: 8px;
+  max-height: 670px;
   overflow: auto;
-  padding-right: 6px;
-  margin-top: 18px;
+  padding-right: 4px;
+  margin-top: 14px;
 }
 
 .answer-row {
   display: grid;
-  grid-template-columns: 44px repeat(5, 1fr);
-  gap: 8px;
+  grid-template-columns: 34px repeat(5, 1fr);
+  gap: 6px;
   align-items: center;
 }
 
@@ -335,12 +336,15 @@ button {
 }
 
 .choice-button {
-  min-height: 42px;
-  border-radius: 12px;
+  width: 34px;
+  height: 34px;
+  min-height: 34px;
+  border-radius: 50%;
   border: 1px solid var(--line);
   background: #fff;
   color: var(--primary-strong);
   font-weight: 700;
+  justify-self: center;
 }
 
 .choice-button.selected {
@@ -350,8 +354,8 @@ button {
 }
 
 .status-panel {
-  padding-top: 18px;
-  padding-bottom: 18px;
+  padding-top: 12px;
+  padding-bottom: 12px;
 }
 
 .timer-panel {
@@ -359,19 +363,19 @@ button {
 }
 
 .timer-display {
-  margin-top: 12px;
-  font-size: clamp(2rem, 4vw, 2.8rem);
+  margin-top: 4px;
+  font-size: clamp(1.7rem, 3vw, 2.2rem);
   font-weight: 800;
   letter-spacing: -0.04em;
 }
 
 .compact-actions {
   justify-content: center;
-  margin-top: 14px;
+  margin-top: 10px;
 }
 
 .note-panel {
-  min-height: 420px;
+  min-height: 250px;
 }
 
 .tab-button {
@@ -382,12 +386,13 @@ button {
 
 .inline-actions {
   justify-content: flex-end;
-  margin: 14px 0;
+  margin: 10px 0;
 }
 
 #drawCanvas {
   width: 100%;
-  min-height: 260px;
+  min-height: 150px;
+  height: 150px;
   border-radius: 18px;
   border: 1px solid var(--line);
   background: #fff;
@@ -395,31 +400,31 @@ button {
 }
 
 .calculator-display {
-  margin-top: 16px;
+  margin-top: 10px;
   border: 1px solid var(--line);
   border-radius: 18px;
   background: #fff;
-  min-height: 78px;
-  padding: 16px;
+  min-height: 58px;
+  padding: 12px;
   text-align: right;
-  font-size: 2.2rem;
+  font-size: 1.8rem;
   overflow-wrap: anywhere;
 }
 
 .calculator-grid {
-  margin-top: 14px;
+  margin-top: 10px;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+  gap: 6px;
 }
 
 .calc-key {
-  min-height: 54px;
+  min-height: 42px;
   border-radius: 12px;
   border: 1px solid var(--line);
   background: #fff;
   color: var(--primary-strong);
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 .calc-key.wide {
@@ -509,6 +514,101 @@ button {
   line-height: 1.6;
 }
 
+.manual-round-form {
+  margin-top: 6px;
+}
+
+.manual-round-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.manual-round-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.manual-area-grid {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.manual-area-card,
+.manual-history-card {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #fff;
+  padding: 16px;
+}
+
+.manual-area-card h4,
+.manual-history-card h4,
+.manual-history-card p {
+  margin: 0;
+}
+
+.manual-area-range {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.manual-area-fields {
+  margin-top: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.manual-area-fields .text-input {
+  min-height: auto;
+}
+
+.manual-round-list {
+  margin-top: 18px;
+  display: grid;
+  gap: 12px;
+}
+
+.manual-history-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.manual-history-meta {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  color: var(--muted);
+}
+
+.manual-history-areas {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.manual-history-area {
+  border-radius: 14px;
+  background: rgba(73, 85, 111, 0.06);
+  padding: 12px;
+}
+
+.manual-history-area p {
+  margin-top: 6px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
 .accent-panel {
   background:
     linear-gradient(135deg, rgba(217, 242, 208, 0.9), rgba(255, 255, 255, 0.96)),
@@ -581,7 +681,7 @@ button {
 
 @media (max-width: 1080px) {
   .workspace.solve-layout {
-    grid-template-columns: minmax(320px, 450px) 1fr;
+    grid-template-columns: 390px minmax(280px, 1fr);
   }
 }
 
@@ -607,6 +707,10 @@ button {
 
   .area-summary-meta {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .manual-round-header {
+    align-items: stretch;
   }
 
   .omr-column {

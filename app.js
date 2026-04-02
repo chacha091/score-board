@@ -16,6 +16,7 @@ const state = {
   userAnswers: {},
   answerKey: [],
   result: null,
+  manualRounds: [],
   wrongOnlyFilter: false,
   timer: {
     remaining: TIMER_SECONDS,
@@ -51,6 +52,10 @@ const elements = {
   wrongList: document.querySelector("#wrongList"),
   comparisonGrid: document.querySelector("#comparisonGrid"),
   areaSummaryList: document.querySelector("#areaSummaryList"),
+  manualRoundNameInput: document.querySelector("#manualRoundNameInput"),
+  manualAreaForm: document.querySelector("#manualAreaForm"),
+  manualRoundError: document.querySelector("#manualRoundError"),
+  manualRoundList: document.querySelector("#manualRoundList"),
   timerMinutes: document.querySelector("#timerMinutes"),
   timerSeconds: document.querySelector("#timerSeconds"),
   memoTabButton: document.querySelector("#memoTabButton"),
@@ -62,6 +67,36 @@ const elements = {
   calculatorDisplay: document.querySelector("#calculatorDisplay"),
   calculatorKeys: document.querySelector("#calculatorKeys"),
 };
+
+function createManualAreaForm() {
+  const fragment = document.createDocumentFragment();
+
+  AREA_GROUPS.forEach((area) => {
+    const card = document.createElement("article");
+    card.className = "manual-area-card";
+    card.innerHTML = `
+      <h4>${area.name}</h4>
+      <p class="manual-area-range">${area.start}~${area.end}</p>
+      <div class="manual-area-fields">
+        <div>
+          <label class="field-label" for="manual-solved-${area.start}">푼 문제</label>
+          <input id="manual-solved-${area.start}" class="text-input" type="number" min="0" max="${area.end - area.start + 1}" data-area-start="${area.start}" data-field="solved" />
+        </div>
+        <div>
+          <label class="field-label" for="manual-correct-${area.start}">맞은 문제</label>
+          <input id="manual-correct-${area.start}" class="text-input" type="number" min="0" max="${area.end - area.start + 1}" data-area-start="${area.start}" data-field="correct" />
+        </div>
+        <div>
+          <label class="field-label" for="manual-wrong-${area.start}">틀린 문제 번호</label>
+          <input id="manual-wrong-${area.start}" class="text-input" type="text" placeholder="예: 2, 5, 7" data-area-start="${area.start}" data-field="wrongNumbers" />
+        </div>
+      </div>
+    `;
+    fragment.appendChild(card);
+  });
+
+  elements.manualAreaForm.appendChild(fragment);
+}
 
 function createAnswerSheet() {
   const fragment = document.createDocumentFragment();
@@ -246,10 +281,12 @@ function renderResult() {
     elements.wrongList.appendChild(perfect);
   } else {
     wrongList.forEach((question) => {
+      const detail = comparison.find((item) => item.question === question);
       const chip = document.createElement("button");
       chip.type = "button";
       chip.className = "wrong-chip";
       chip.textContent = `${question}번`;
+      chip.title = `내 답 ${detail?.userAnswer ?? "-"} / 정답 ${detail?.correctAnswer ?? "-"}`;
       chip.addEventListener("click", () => {
         setMode("solve");
         const row = document.querySelector(`.answer-row[data-question="${question}"]`);
@@ -352,6 +389,150 @@ function renderComparisonGrid(comparison) {
   elements.comparisonGrid.appendChild(fragment);
 }
 
+function parseManualWrongNumbers(value, area) {
+  if (!value.trim()) {
+    return [];
+  }
+
+  const numbers = value
+    .split(/[\s,]+/)
+    .filter(Boolean)
+    .map((item) => Number(item));
+
+  const hasInvalid = numbers.some(
+    (item) => Number.isNaN(item) || item < area.start || item > area.end,
+  );
+  if (hasInvalid) {
+    throw new Error(`${area.name} 틀린 문제 번호는 ${area.start}~${area.end} 범위만 입력할 수 있습니다.`);
+  }
+
+  return [...new Set(numbers)].sort((a, b) => a - b);
+}
+
+function clearManualRoundForm() {
+  elements.manualRoundNameInput.value = "";
+  elements.manualRoundError.textContent = "";
+  elements.manualAreaForm.querySelectorAll("input").forEach((input) => {
+    input.value = "";
+  });
+}
+
+function saveManualRound() {
+  try {
+    const roundName = elements.manualRoundNameInput.value.trim();
+    if (!roundName) {
+      throw new Error("수동 회차명은 비워둘 수 없습니다.");
+    }
+
+    const areaSummaries = AREA_GROUPS.map((area) => {
+      const solvedInput = elements.manualAreaForm.querySelector(
+        `input[data-area-start="${area.start}"][data-field="solved"]`,
+      );
+      const correctInput = elements.manualAreaForm.querySelector(
+        `input[data-area-start="${area.start}"][data-field="correct"]`,
+      );
+      const wrongInput = elements.manualAreaForm.querySelector(
+        `input[data-area-start="${area.start}"][data-field="wrongNumbers"]`,
+      );
+
+      const total = area.end - area.start + 1;
+      const solved = solvedInput.value === "" ? 0 : Number(solvedInput.value);
+      const correct = correctInput.value === "" ? 0 : Number(correctInput.value);
+      const wrongNumbers = parseManualWrongNumbers(wrongInput.value, area);
+
+      if (Number.isNaN(solved) || solved < 0 || solved > total) {
+        throw new Error(`${area.name}의 푼 문제 수가 올바르지 않습니다.`);
+      }
+      if (Number.isNaN(correct) || correct < 0 || correct > solved) {
+        throw new Error(`${area.name}의 맞은 문제 수는 푼 문제 수보다 클 수 없습니다.`);
+      }
+
+      return {
+        ...area,
+        total,
+        solved,
+        correct,
+        wrongNumbers,
+        score: correct,
+        accuracy: solved > 0 ? Math.round((correct / solved) * 100) : 0,
+      };
+    });
+
+    const solved = areaSummaries.reduce((sum, area) => sum + area.solved, 0);
+    const correct = areaSummaries.reduce((sum, area) => sum + area.correct, 0);
+    const wrong = areaSummaries.reduce((sum, area) => sum + area.wrongNumbers.length, 0);
+    const score = correct;
+    const accuracy = solved > 0 ? Math.round((correct / solved) * 100) : 0;
+
+    state.manualRounds.unshift({
+      id: `${Date.now()}`,
+      roundName,
+      solved,
+      correct,
+      wrong,
+      score,
+      accuracy,
+      areaSummaries,
+    });
+
+    elements.manualRoundError.textContent = "";
+    clearManualRoundForm();
+    renderManualRounds();
+    saveState();
+  } catch (error) {
+    elements.manualRoundError.textContent = error.message;
+  }
+}
+
+function renderManualRounds() {
+  elements.manualRoundList.innerHTML = "";
+
+  if (state.manualRounds.length === 0) {
+    elements.manualRoundList.textContent = "아직 저장된 수동 회차가 없습니다.";
+    elements.manualRoundList.classList.add("empty-state");
+    return;
+  }
+
+  elements.manualRoundList.classList.remove("empty-state");
+  const fragment = document.createDocumentFragment();
+
+  state.manualRounds.forEach((round) => {
+    const card = document.createElement("article");
+    card.className = "manual-history-card";
+
+    const areaMarkup = round.areaSummaries
+      .map(
+        (area) => `
+          <div class="manual-history-area">
+            <strong>${area.name}</strong>
+            <p>푼 문제 ${area.solved} / 맞은 문제 ${area.correct} / 총점 ${area.score}</p>
+            <p>틀린 번호: ${area.wrongNumbers.length ? area.wrongNumbers.join(", ") : "없음"}</p>
+            <p>정답률 ${area.accuracy}%</p>
+          </div>
+        `,
+      )
+      .join("");
+
+    card.innerHTML = `
+      <div class="manual-history-top">
+        <h4>${round.roundName}</h4>
+        <strong>총점 ${round.score}</strong>
+      </div>
+      <div class="manual-history-meta">
+        <span>푼 문제 ${round.solved}</span>
+        <span>맞은 문제 ${round.correct}</span>
+        <span>틀린 문제 ${round.wrong}</span>
+        <span>정답률 ${round.accuracy}%</span>
+      </div>
+      <div class="manual-history-areas">${areaMarkup}</div>
+    `;
+
+    fragment.appendChild(card);
+  });
+
+  elements.manualRoundList.appendChild(fragment);
+}
+
 function resetAnswers() {
   state.roundName = "";
   state.userAnswers = {};
@@ -416,6 +597,7 @@ function saveState() {
       roundName: state.roundName,
       userAnswers: state.userAnswers,
       answerKey: state.answerKey,
+      manualRounds: state.manualRounds,
       answerKeyInput: elements.answerKeyInput.value,
       memoInput: elements.memoInput.value,
       gradingPanelOpen: !elements.gradingPanel.classList.contains("hidden"),
@@ -441,6 +623,7 @@ function hydrateState() {
     state.roundName = saved.roundName ?? "";
     state.userAnswers = saved.userAnswers ?? {};
     state.answerKey = saved.answerKey ?? [];
+    state.manualRounds = saved.manualRounds ?? [];
     state.wrongOnlyFilter = Boolean(saved.wrongOnlyFilter);
     state.result = saved.result ?? null;
     state.timer.remaining =
@@ -677,7 +860,11 @@ function bindEvents() {
 
     const question = Number(button.dataset.question);
     const choice = Number(button.dataset.choice);
-    state.userAnswers[question] = choice;
+    if (state.userAnswers[question] === choice) {
+      delete state.userAnswers[question];
+    } else {
+      state.userAnswers[question] = choice;
+    }
     renderAnswerSelection();
   });
 
@@ -710,13 +897,12 @@ function bindEvents() {
   document.querySelector("#startTimerButton").addEventListener("click", startTimer);
   document.querySelector("#pauseTimerButton").addEventListener("click", stopTimer);
   document.querySelector("#resetTimerButton").addEventListener("click", resetTimer);
-  document.querySelector("#helpTimerButton").addEventListener("click", () => {
-    window.alert("OMR 풀이 중 15분 집중 시간을 재는 타이머입니다.");
-  });
   document.querySelector("#clearMemoButton").addEventListener("click", () => {
     elements.memoInput.value = "";
     saveState();
   });
+  document.querySelector("#saveManualRoundButton").addEventListener("click", saveManualRound);
+  document.querySelector("#clearManualRoundButton").addEventListener("click", clearManualRoundForm);
   elements.roundNameInput.addEventListener("input", (event) => {
     state.roundName = event.target.value;
     saveState();
@@ -729,6 +915,7 @@ function bindEvents() {
 
 function init() {
   createAnswerSheet();
+  createManualAreaForm();
   hydrateState();
   renderAnswerSelection();
   formatTime(state.timer.remaining);
@@ -740,6 +927,8 @@ function init() {
   if (state.result) {
     renderResult();
   }
+
+  renderManualRounds();
 
   if (state.mode === "result" && state.result) {
     setMode("result");
