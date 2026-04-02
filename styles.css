@@ -717,6 +717,7 @@ button {
   border-collapse: collapse;
   font-size: 0.88rem;
   background: #fff;
+  table-layout: fixed;
 }
 
 .history-table th,
@@ -734,9 +735,18 @@ button {
 
 .history-table tbody td:first-child {
   font-weight: 700;
-  min-width: 112px;
-  width: 112px;
+  min-width: 130px;
+  width: 130px;
   line-height: 1.45;
+}
+
+.history-round-name {
+  margin-bottom: 6px;
+}
+
+.history-edit-button {
+  min-width: 52px;
+  padding: 4px 8px;
 }
 
 .history-wrong-row td {
