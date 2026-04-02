@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SKCT OMR 채점 및 결과 분석</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">SKCT Scoring Workspace</p>
+          <h1>OMR 채점 및 결과 분석 페이지</h1>
+        </div>
+        <div class="hero-actions">
+          <button id="solveModeButton" class="ghost-button active" type="button">OMR 모드</button>
+          <button id="resultModeButton" class="ghost-button" type="button">결과 집중 모드</button>
+        </div>
+      </header>
+
+      <main id="workspace" class="workspace solve-layout">
+        <section class="omr-column">
+          <div class="panel panel-header">
+            <div>
+              <p class="section-label">Answer Sheet</p>
+              <h2>OMR 답안지</h2>
+            </div>
+            <div class="panel-actions">
+              <button id="openGradingButton" class="primary-button" type="button">답안지 보기</button>
+              <button id="resetAnswersButton" class="secondary-button" type="button">답안 초기화</button>
+            </div>
+          </div>
+
+          <section id="gradingPanel" class="panel grading-panel hidden" aria-live="polite">
+            <div class="panel-title-row">
+              <div>
+                <p class="section-label">Input</p>
+                <h3>정답 입력</h3>
+              </div>
+              <button id="closeGradingButton" class="text-button" type="button">닫기</button>
+            </div>
+            <label class="field-label" for="roundNameInput">회차명</label>
+            <input
+              id="roundNameInput"
+              class="text-input"
+              type="text"
+              placeholder="예: 해커스 실전 모의고사 1회"
+            />
+            <p class="help-copy">정답을 숫자로 입력하세요. 쉼표 또는 공백 모두 허용합니다.</p>
+            <p class="example-copy">예: 1,2,3,4,5 또는 1 2 3 4 5</p>
+            <textarea
+              id="answerKeyInput"
+              class="answer-input"
+              placeholder="1,2,3,4,5,1,2,3,4,5..."
+            ></textarea>
+            <p id="inputError" class="error-copy" role="alert"></p>
+            <div class="panel-actions fill-actions">
+              <button id="gradeExamButton" class="primary-button" type="button">채점하기</button>
+              <button id="clearInputButton" class="secondary-button" type="button">입력 지우기</button>
+            </div>
+          </section>
+
+          <section class="panel answer-sheet-panel">
+            <div class="panel-title-row">
+              <div>
+                <p class="section-label">OMR</p>
+                <h3>100문항 답안 체크</h3>
+              </div>
+              <div class="status-pill">
+                <span id="answeredCount">0</span>
+                <span>/ 100</span>
+              </div>
+            </div>
+            <div id="answerGrid" class="answer-grid"></div>
+          </section>
+
+          <footer class="panel status-panel">
+            <p>표시한 답안: <strong><span id="footerAnsweredCount">0</span> / 100</strong></p>
+          </footer>
+        </section>
+
+        <aside class="utility-column">
+          <section class="panel utility-panel timer-panel">
+            <div class="panel-title-row">
+              <div>
+                <p class="section-label">Timer</p>
+                <h3>15분 집중 타이머</h3>
+              </div>
+              <button id="helpTimerButton" class="icon-button" type="button" title="타이머 안내">?</button>
+            </div>
+            <div class="timer-display">
+              <span id="timerMinutes">15</span>분 <span id="timerSeconds">00</span>초
+            </div>
+            <p class="timer-subcopy">OMR 풀이용 고정 타이머입니다.</p>
+            <div class="panel-actions compact-actions">
+              <button id="startTimerButton" class="success-button" type="button">시작</button>
+              <button id="pauseTimerButton" class="secondary-button" type="button">일시정지</button>
+              <button id="resetTimerButton" class="secondary-button" type="button">리셋</button>
+            </div>
+          </section>
+
+          <section class="panel utility-panel note-panel">
+            <div class="tab-row">
+              <button id="memoTabButton" class="tab-button active" type="button">메모장</button>
+              <button id="drawTabButton" class="tab-button" type="button">그림판</button>
+            </div>
+            <div id="memoPanel" class="tab-panel active">
+              <div class="inline-actions">
+                <button id="clearMemoButton" class="secondary-button small-button" type="button">
+                  전체 지우기
+                </button>
+              </div>
+              <textarea
+                id="memoInput"
+                class="memo-input"
+                placeholder="메모를 입력하세요..."
+              ></textarea>
+            </div>
+            <div id="drawPanel" class="tab-panel">
+              <div class="inline-actions">
+                <button id="clearCanvasButton" class="secondary-button small-button" type="button">
+                  캔버스 지우기
+                </button>
+              </div>
+              <canvas id="drawCanvas" width="360" height="260"></canvas>
+            </div>
+          </section>
+
+          <section class="panel utility-panel calculator-panel">
+            <div>
+              <p class="section-label">Calculator</p>
+              <h3>일반 계산기</h3>
+            </div>
+            <div id="calculatorDisplay" class="calculator-display">0</div>
+            <div id="calculatorKeys" class="calculator-grid"></div>
+          </section>
+        </aside>
+
+        <section id="resultPanel" class="result-panel hidden">
+          <div class="panel result-hero">
+            <div>
+              <p class="section-label">Result</p>
+              <h2>SKCT 채점 결과</h2>
+              <p id="roundNameDisplay" class="round-name-display">회차명 미입력</p>
+              <p class="hero-copy">
+                결과 화면은 엑셀 결과표처럼 영역별 요약과 전체 총점, 정답률을 한 번에 볼 수
+                있게 구성했습니다.
+              </p>
+            </div>
+            <div class="result-actions">
+              <button id="backToSolveButton" class="primary-button" type="button">OMR로 돌아가기</button>
+              <button id="retryWrongButton" class="secondary-button" type="button">오답만 다시 보기</button>
+            </div>
+          </div>
+
+          <div class="result-grid">
+            <article class="panel metric-panel accent-panel">
+              <p class="metric-label">총점</p>
+              <p id="scoreValue" class="metric-value">0</p>
+              <p id="resultSummary" class="metric-subcopy">채점 후 결과가 표시됩니다.</p>
+            </article>
+
+            <article class="panel metric-panel">
+              <p class="metric-label">정답률</p>
+              <p id="accuracyValue" class="metric-value small">0%</p>
+            </article>
+
+            <article class="panel metric-panel">
+              <p class="metric-label">푼 문제</p>
+              <p id="solvedValue" class="metric-value small">0</p>
+            </article>
+
+            <article class="panel metric-panel">
+              <p class="metric-label">맞은 문제</p>
+              <p id="correctValue" class="metric-value small">0</p>
+            </article>
+          </div>
+
+          <div class="result-detail-grid">
+            <section class="panel">
+              <div class="panel-title-row">
+                <div>
+                  <p class="section-label">Area Summary</p>
+                  <h3>영역별 결과표</h3>
+                </div>
+              </div>
+              <div id="areaSummaryList" class="area-summary-list empty-state">아직 채점 결과가 없습니다.</div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-title-row">
+                <div>
+                  <p class="section-label">Wrong Answers</p>
+                  <h3>전체 오답 번호</h3>
+                </div>
+              </div>
+              <div id="wrongList" class="wrong-list empty-state">아직 채점 결과가 없습니다.</div>
+              <div id="comparisonGrid" class="comparison-grid"></div>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
