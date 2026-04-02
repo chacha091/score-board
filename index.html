@@ -13,26 +13,21 @@
   </head>
   <body>
     <div class="app-shell">
-      <header class="hero">
-        <div>
-          <p class="eyebrow">SKCT Scoring Workspace</p>
-          <h1>OMR 채점 및 결과 분석 페이지</h1>
-        </div>
-        <div class="hero-actions">
-          <button id="solveModeButton" class="ghost-button active" type="button">OMR 모드</button>
-          <button id="resultModeButton" class="ghost-button" type="button">결과 집중 모드</button>
-        </div>
-      </header>
-
       <main id="workspace" class="workspace solve-layout">
+        <section class="spacer-column">
+          <div class="hero-actions mode-switch-row">
+            <button id="solveModeButton" class="ghost-button active" type="button">OMR 모드</button>
+            <button id="resultModeButton" class="ghost-button" type="button">결과 집중 모드</button>
+          </div>
+        </section>
+
         <section class="omr-column">
           <div class="panel panel-header">
             <div>
-              <p class="section-label">Answer Sheet</p>
               <h2>OMR 답안지</h2>
             </div>
             <div class="panel-actions">
-              <button id="openGradingButton" class="primary-button" type="button">답안지 보기</button>
+              <button id="openGradingButton" class="primary-button" type="button">채점하기</button>
               <button id="resetAnswersButton" class="secondary-button" type="button">답안 초기화</button>
             </div>
           </div>
@@ -40,10 +35,8 @@
           <section id="gradingPanel" class="panel grading-panel hidden" aria-live="polite">
             <div class="panel-title-row">
               <div>
-                <p class="section-label">Input</p>
                 <h3>정답 입력</h3>
               </div>
-              <button id="closeGradingButton" class="text-button" type="button">닫기</button>
             </div>
             <label class="field-label" for="roundNameInput">회차명</label>
             <input
@@ -129,11 +122,7 @@
             </div>
           </section>
 
-          <section class="panel utility-panel calculator-panel">
-            <div>
-              <p class="section-label">Calculator</p>
-              <h3>일반 계산기</h3>
-            </div>
+          <section class="panel utility-panel calculator-panel" id="calculatorPanel" tabindex="0">
             <div id="calculatorDisplay" class="calculator-display">0</div>
             <div id="calculatorKeys" class="calculator-grid"></div>
           </section>
@@ -142,17 +131,13 @@
         <section id="resultPanel" class="result-panel hidden">
           <div class="panel result-hero">
             <div>
-              <p class="section-label">Result</p>
               <h2>SKCT 채점 결과</h2>
               <p id="roundNameDisplay" class="round-name-display">회차명 미입력</p>
-              <p class="hero-copy">
-                결과 화면은 엑셀 결과표처럼 영역별 요약과 전체 총점, 정답률을 한 번에 볼 수
-                있게 구성했습니다.
-              </p>
             </div>
             <div class="result-actions">
               <button id="backToSolveButton" class="primary-button" type="button">OMR로 돌아가기</button>
               <button id="retryWrongButton" class="secondary-button" type="button">오답만 다시 보기</button>
+              <button id="openManualRoundModalButton" class="primary-button" type="button">회차 추가</button>
             </div>
           </div>
 
@@ -183,7 +168,6 @@
             <section class="panel">
               <div class="panel-title-row">
                 <div>
-                  <p class="section-label">Area Summary</p>
                   <h3>영역별 결과표</h3>
                 </div>
               </div>
@@ -193,7 +177,6 @@
             <section class="panel">
               <div class="panel-title-row">
                 <div>
-                  <p class="section-label">Wrong Answers</p>
                   <h3>전체 오답 번호</h3>
                 </div>
               </div>
@@ -205,42 +188,52 @@
           <section class="panel manual-round-panel">
             <div class="panel-title-row">
               <div>
-                <p class="section-label">Manual Entry</p>
                 <h3>수동 회차 추가</h3>
               </div>
             </div>
-            <div class="manual-round-form">
-              <div class="manual-round-header">
-                <div>
-                  <label class="field-label" for="manualRoundNameInput">회차명</label>
-                  <input
-                    id="manualRoundNameInput"
-                    class="text-input"
-                    type="text"
-                    placeholder="예: 실전 모의고사 3회"
-                  />
-                </div>
-                <div class="manual-round-actions">
-                  <button id="saveManualRoundButton" class="primary-button" type="button">회차 저장</button>
-                  <button id="clearManualRoundButton" class="secondary-button" type="button">입력 지우기</button>
-                </div>
-              </div>
-              <div id="manualAreaForm" class="manual-area-grid"></div>
-              <p id="manualRoundError" class="error-copy" role="alert"></p>
-            </div>
+            <p class="manual-round-help">버튼을 눌러 팝업에서 회차 정보를 입력하세요.</p>
           </section>
 
           <section class="panel manual-history-panel">
             <div class="panel-title-row">
               <div>
-                <p class="section-label">Round History</p>
-                <h3>저장된 수동 회차</h3>
+                <h3>회차별 결과표</h3>
               </div>
             </div>
-            <div id="manualRoundList" class="manual-round-list empty-state">아직 저장된 수동 회차가 없습니다.</div>
+            <div id="manualRoundList" class="manual-round-list empty-state">아직 저장된 회차가 없습니다.</div>
           </section>
         </section>
       </main>
+
+      <div id="manualRoundModal" class="modal-backdrop hidden">
+        <div class="panel modal-panel" role="dialog" aria-modal="true" aria-labelledby="manualRoundModalTitle">
+          <div class="panel-title-row">
+            <div>
+              <h3 id="manualRoundModalTitle">수동 회차 추가</h3>
+            </div>
+            <button id="closeManualRoundModalButton" class="text-button" type="button">닫기</button>
+          </div>
+          <div class="manual-round-form">
+            <div class="manual-round-header">
+              <div>
+                <label class="field-label" for="manualRoundNameInput">회차명</label>
+                <input
+                  id="manualRoundNameInput"
+                  class="text-input"
+                  type="text"
+                  placeholder="예: 실전 모의고사 3회"
+                />
+              </div>
+              <div class="manual-round-actions">
+                <button id="saveManualRoundButton" class="primary-button" type="button">회차 저장</button>
+                <button id="clearManualRoundButton" class="secondary-button" type="button">입력 지우기</button>
+              </div>
+            </div>
+            <div id="manualAreaForm" class="manual-area-grid"></div>
+            <p id="manualRoundError" class="error-copy" role="alert"></p>
+          </div>
+        </div>
+      </div>
     </div>
 
     <script src="./app.js"></script>

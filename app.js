@@ -12,10 +12,12 @@ const AREA_GROUPS = [
 
 const state = {
   mode: "solve",
+  omrVisible: true,
   roundName: "",
   userAnswers: {},
   answerKey: [],
   result: null,
+  roundHistory: [],
   manualRounds: [],
   wrongOnlyFilter: false,
   timer: {
@@ -32,6 +34,8 @@ const state = {
 const elements = {
   workspace: document.querySelector("#workspace"),
   answerGrid: document.querySelector("#answerGrid"),
+  answerSheetPanel: document.querySelector(".answer-sheet-panel"),
+  statusPanel: document.querySelector(".status-panel"),
   answeredCount: document.querySelector("#answeredCount"),
   footerAnsweredCount: document.querySelector("#footerAnsweredCount"),
   gradingPanel: document.querySelector("#gradingPanel"),
@@ -56,6 +60,7 @@ const elements = {
   manualAreaForm: document.querySelector("#manualAreaForm"),
   manualRoundError: document.querySelector("#manualRoundError"),
   manualRoundList: document.querySelector("#manualRoundList"),
+  manualRoundModal: document.querySelector("#manualRoundModal"),
   timerMinutes: document.querySelector("#timerMinutes"),
   timerSeconds: document.querySelector("#timerSeconds"),
   memoTabButton: document.querySelector("#memoTabButton"),
@@ -64,6 +69,7 @@ const elements = {
   drawPanel: document.querySelector("#drawPanel"),
   memoInput: document.querySelector("#memoInput"),
   drawCanvas: document.querySelector("#drawCanvas"),
+  calculatorPanel: document.querySelector("#calculatorPanel"),
   calculatorDisplay: document.querySelector("#calculatorDisplay"),
   calculatorKeys: document.querySelector("#calculatorKeys"),
 };
@@ -141,18 +147,27 @@ function renderAnswerSelection() {
 }
 
 function showGradingPanel(visible) {
+  state.omrVisible = !visible;
   elements.gradingPanel.classList.toggle("hidden", !visible);
+  elements.answerSheetPanel.classList.toggle("hidden", visible);
+  elements.statusPanel.classList.toggle("hidden", visible);
+  document.querySelector("#openGradingButton").textContent = visible ? "답안지 보기" : "채점하기";
   saveState();
 }
 
 function setMode(mode) {
   state.mode = mode;
   const solveLayout = mode === "solve";
+  document.body.classList.toggle("solve-mode", solveLayout);
+  document.body.classList.toggle("result-mode", !solveLayout);
   elements.workspace.classList.toggle("solve-layout", solveLayout);
   elements.workspace.classList.toggle("result-layout", !solveLayout);
   elements.resultPanel.classList.toggle("hidden", solveLayout);
   elements.solveModeButton.classList.toggle("active", solveLayout);
   elements.resultModeButton.classList.toggle("active", !solveLayout);
+  if (solveLayout) {
+    showGradingPanel(!state.omrVisible);
+  }
   saveState();
 }
 
@@ -247,6 +262,18 @@ function gradeExam() {
       areaSummaries,
       roundName: state.roundName,
     };
+
+    state.roundHistory.unshift({
+      id: `${Date.now()}`,
+      roundName: state.roundName || `채점 기록 ${state.roundHistory.length + 1}`,
+      solved,
+      correct,
+      wrong,
+      score: correct,
+      accuracy,
+      areaSummaries,
+      source: "auto",
+    });
 
     renderResult();
     setMode("result");
@@ -417,6 +444,10 @@ function clearManualRoundForm() {
   });
 }
 
+function setManualRoundModal(open) {
+  elements.manualRoundModal.classList.toggle("hidden", !open);
+}
+
 function saveManualRound() {
   try {
     const roundName = elements.manualRoundNameInput.value.trim();
@@ -464,7 +495,7 @@ function saveManualRound() {
     const score = correct;
     const accuracy = solved > 0 ? Math.round((correct / solved) * 100) : 0;
 
-    state.manualRounds.unshift({
+    const roundRecord = {
       id: `${Date.now()}`,
       roundName,
       solved,
@@ -473,10 +504,15 @@ function saveManualRound() {
       score,
       accuracy,
       areaSummaries,
-    });
+      source: "manual",
+    };
+
+    state.manualRounds.unshift(roundRecord);
+    state.roundHistory.unshift(roundRecord);
 
     elements.manualRoundError.textContent = "";
     clearManualRoundForm();
+    setManualRoundModal(false);
     renderManualRounds();
     saveState();
   } catch (error) {
@@ -487,53 +523,202 @@ function saveManualRound() {
 function renderManualRounds() {
   elements.manualRoundList.innerHTML = "";
 
-  if (state.manualRounds.length === 0) {
-    elements.manualRoundList.textContent = "아직 저장된 수동 회차가 없습니다.";
+  if (state.roundHistory.length === 0) {
+    elements.manualRoundList.innerHTML = '<p class="history-empty">아직 저장된 회차가 없습니다.</p>';
     elements.manualRoundList.classList.add("empty-state");
     return;
   }
 
   elements.manualRoundList.classList.remove("empty-state");
-  const fragment = document.createDocumentFragment();
+  const rows = state.roundHistory
+    .map((round) => {
+      const summaryCells = round.areaSummaries
+        .map((area) => `<td>${area.solved}</td><td>${area.correct}</td>`)
+        .join("");
+      const wrongCells = round.areaSummaries
+        .map(
+          (area) =>
+            `<td colspan="2">${area.wrongNumbers.length ? area.wrongNumbers.join(" ") : ""}</td>`,
+        )
+        .join("");
 
-  state.manualRounds.forEach((round) => {
-    const card = document.createElement("article");
-    card.className = "manual-history-card";
+      return `
+        <tr>
+          <td rowspan="2">${round.roundName}</td>
+          ${summaryCells}
+          <td rowspan="2">${round.score}</td>
+          <td rowspan="2">${round.accuracy}%</td>
+        </tr>
+        <tr class="history-wrong-row">
+          ${wrongCells}
+        </tr>
+      `;
+    })
+    .join("");
 
-    const areaMarkup = round.areaSummaries
-      .map(
-        (area) => `
-          <div class="manual-history-area">
-            <strong>${area.name}</strong>
-            <p>푼 문제 ${area.solved} / 맞은 문제 ${area.correct} / 총점 ${area.score}</p>
-            <p>틀린 번호: ${area.wrongNumbers.length ? area.wrongNumbers.join(", ") : "없음"}</p>
-            <p>정답률 ${area.accuracy}%</p>
-          </div>
-        `,
-      )
-      .join("");
+  elements.manualRoundList.innerHTML = `
+    <table class="history-table">
+      <thead>
+        <tr>
+          <th rowspan="2">회차</th>
+          <th colspan="2">언어이해 (1~20)</th>
+          <th colspan="2">자료해석 (21~40)</th>
+          <th colspan="2">창의수리 (41~60)</th>
+          <th colspan="2">언어추리 (61~80)</th>
+          <th colspan="2">수열추리 (81~100)</th>
+          <th rowspan="2">총점</th>
+          <th rowspan="2">정답률</th>
+        </tr>
+        <tr>
+          <th>푼 문제</th>
+          <th>맞은 문제</th>
+          <th>푼 문제</th>
+          <th>맞은 문제</th>
+          <th>푼 문제</th>
+          <th>맞은 문제</th>
+          <th>푼 문제</th>
+          <th>맞은 문제</th>
+          <th>푼 문제</th>
+          <th>맞은 문제</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
 
-    card.innerHTML = `
-      <div class="manual-history-top">
-        <h4>${round.roundName}</h4>
-        <strong>총점 ${round.score}</strong>
-      </div>
-      <div class="manual-history-meta">
-        <span>푼 문제 ${round.solved}</span>
-        <span>맞은 문제 ${round.correct}</span>
-        <span>틀린 문제 ${round.wrong}</span>
-        <span>정답률 ${round.accuracy}%</span>
-      </div>
-      <div class="manual-history-areas">${areaMarkup}</div>
-    `;
+function renderResult() {
+  if (!state.result) {
+    return;
+  }
 
-    fragment.appendChild(card);
-  });
+  const { solved, correct, wrong, accuracy, comparison, score, areaSummaries, roundName } =
+    state.result;
 
-  elements.manualRoundList.appendChild(fragment);
+  elements.scoreValue.textContent = String(score);
+  elements.solvedValue.textContent = String(solved);
+  elements.correctValue.textContent = String(correct);
+  elements.accuracyValue.textContent = `${accuracy}%`;
+  elements.resultSummary.textContent = `${solved}문제 중 ${correct}문제 정답, ${wrong}문제 오답`;
+  elements.roundNameDisplay.textContent = roundName || "회차명 미입력";
+
+  renderAreaSummaries(areaSummaries);
+
+  elements.wrongList.innerHTML = "";
+  const wrongAreas = areaSummaries.filter((area) => area.wrongNumbers.length > 0);
+
+  if (wrongAreas.length === 0) {
+    const perfect = document.createElement("p");
+    perfect.className = "empty-state";
+    perfect.textContent = "전 문항 정답입니다.";
+    elements.wrongList.appendChild(perfect);
+  } else {
+    wrongAreas.forEach((area) => {
+      const group = document.createElement("section");
+      group.className = "wrong-area-group";
+
+      const title = document.createElement("h4");
+      title.className = "wrong-area-title";
+      title.textContent = `${area.name} (${area.start}~${area.end})`;
+      group.appendChild(title);
+
+      const chipRow = document.createElement("div");
+      chipRow.className = "wrong-area-chips";
+
+      area.wrongNumbers.forEach((question) => {
+        const detail = comparison.find((item) => item.question === question);
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "wrong-chip";
+        chip.textContent = `${question}번`;
+        chip.title = `내 답 ${detail?.userAnswer ?? "-"} / 정답 ${detail?.correctAnswer ?? "-"}`;
+        chip.addEventListener("click", () => {
+          setMode("solve");
+          const row = document.querySelector(`.answer-row[data-question="${question}"]`);
+          row?.scrollIntoView({ behavior: "smooth", block: "center" });
+        });
+        chipRow.appendChild(chip);
+      });
+
+      group.appendChild(chipRow);
+      elements.wrongList.appendChild(group);
+    });
+  }
+
+  renderComparisonGrid(comparison);
+  renderManualRounds();
+  saveState();
+}
+
+function renderManualRounds() {
+  elements.manualRoundList.innerHTML = "";
+
+  if (state.roundHistory.length === 0) {
+    elements.manualRoundList.innerHTML = '<p class="history-empty">아직 저장된 회차가 없습니다.</p>';
+    elements.manualRoundList.classList.add("empty-state");
+    return;
+  }
+
+  elements.manualRoundList.classList.remove("empty-state");
+  const rows = state.roundHistory
+    .map((round) => {
+      const summaryCells = round.areaSummaries
+        .map((area) => `<td>${area.solved || ""}</td><td>${area.correct || ""}</td>`)
+        .join("");
+      const wrongCells = round.areaSummaries
+        .map(
+          (area) =>
+            `<td colspan="2">${area.wrongNumbers.length ? area.wrongNumbers.join(" ") : ""}</td>`,
+        )
+        .join("");
+
+      return `
+        <tr>
+          <td rowspan="2">${round.roundName}</td>
+          ${summaryCells}
+          <td rowspan="2">${round.score}</td>
+          <td rowspan="2">${round.accuracy}%</td>
+        </tr>
+        <tr class="history-wrong-row">
+          ${wrongCells}
+        </tr>
+      `;
+    })
+    .join("");
+
+  elements.manualRoundList.innerHTML = `
+    <table class="history-table">
+      <thead>
+        <tr>
+          <th rowspan="2">회차</th>
+          <th colspan="2">언어이해 (1~20)</th>
+          <th colspan="2">자료해석 (21~40)</th>
+          <th colspan="2">창의수리 (41~60)</th>
+          <th colspan="2">언어추리 (61~80)</th>
+          <th colspan="2">수열추리 (81~100)</th>
+          <th rowspan="2">총점</th>
+          <th rowspan="2">정답률</th>
+        </tr>
+        <tr>
+          <th>푼 문제</th>
+          <th>맞은 문제</th>
+          <th>푼 문제</th>
+          <th>맞은 문제</th>
+          <th>푼 문제</th>
+          <th>맞은 문제</th>
+          <th>푼 문제</th>
+          <th>맞은 문제</th>
+          <th>푼 문제</th>
+          <th>맞은 문제</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
 }
 
 function resetAnswers() {
+  state.omrVisible = true;
   state.roundName = "";
   state.userAnswers = {};
   state.result = null;
@@ -594,9 +779,11 @@ function saveState() {
   try {
     const payload = {
       mode: state.mode,
+      omrVisible: state.omrVisible,
       roundName: state.roundName,
       userAnswers: state.userAnswers,
       answerKey: state.answerKey,
+      roundHistory: state.roundHistory,
       manualRounds: state.manualRounds,
       answerKeyInput: elements.answerKeyInput.value,
       memoInput: elements.memoInput.value,
@@ -620,9 +807,11 @@ function hydrateState() {
 
     const saved = JSON.parse(raw);
     state.mode = saved.mode ?? "solve";
+    state.omrVisible = saved.omrVisible ?? true;
     state.roundName = saved.roundName ?? "";
     state.userAnswers = saved.userAnswers ?? {};
     state.answerKey = saved.answerKey ?? [];
+    state.roundHistory = saved.roundHistory ?? saved.manualRounds ?? [];
     state.manualRounds = saved.manualRounds ?? [];
     state.wrongOnlyFilter = Boolean(saved.wrongOnlyFilter);
     state.result = saved.result ?? null;
@@ -633,7 +822,7 @@ function hydrateState() {
     elements.answerKeyInput.value = saved.answerKeyInput ?? "";
     elements.memoInput.value = saved.memoInput ?? "";
     elements.roundNameDisplay.textContent = saved.roundName || "회차명 미입력";
-    showGradingPanel(Boolean(saved.gradingPanelOpen));
+    showGradingPanel(saved.gradingPanelOpen ?? !state.omrVisible);
   } catch {
     // Ignore invalid persisted state.
   }
@@ -851,6 +1040,37 @@ function handleCalculatorInput(event) {
   updateCalculatorDisplay();
 }
 
+function handleCalculatorKeydown(event) {
+  const key = event.key;
+
+  if (/^[0-9]$/.test(key) || ["+", "-", "*", "/", "%", ".", "(", ")"].includes(key)) {
+    event.preventDefault();
+    state.calculator.expression += key;
+    state.calculator.display = state.calculator.expression;
+    updateCalculatorDisplay();
+    return;
+  }
+
+  if (key === "Enter" || key === "=") {
+    event.preventDefault();
+    evaluateExpression();
+    return;
+  }
+
+  if (key === "Backspace") {
+    event.preventDefault();
+    removeLastEntry();
+    return;
+  }
+
+  if (key === "Delete" || key === "Escape") {
+    event.preventDefault();
+    state.calculator.expression = "";
+    state.calculator.display = "0";
+    updateCalculatorDisplay();
+  }
+}
+
 function bindEvents() {
   elements.answerGrid.addEventListener("click", (event) => {
     const button = event.target.closest(".choice-button");
@@ -868,8 +1088,9 @@ function bindEvents() {
     renderAnswerSelection();
   });
 
-  document.querySelector("#openGradingButton").addEventListener("click", () => showGradingPanel(true));
-  document.querySelector("#closeGradingButton").addEventListener("click", () => showGradingPanel(false));
+  document.querySelector("#openGradingButton").addEventListener("click", () => {
+    showGradingPanel(state.omrVisible);
+  });
   document.querySelector("#resetAnswersButton").addEventListener("click", resetAnswers);
   document.querySelector("#gradeExamButton").addEventListener("click", gradeExam);
   document.querySelector("#clearInputButton").addEventListener("click", () => {
@@ -888,11 +1109,7 @@ function bindEvents() {
   });
 
   elements.solveModeButton.addEventListener("click", () => setMode("solve"));
-  elements.resultModeButton.addEventListener("click", () => {
-    if (state.result) {
-      setMode("result");
-    }
-  });
+  elements.resultModeButton.addEventListener("click", () => setMode("result"));
 
   document.querySelector("#startTimerButton").addEventListener("click", startTimer);
   document.querySelector("#pauseTimerButton").addEventListener("click", stopTimer);
@@ -903,6 +1120,8 @@ function bindEvents() {
   });
   document.querySelector("#saveManualRoundButton").addEventListener("click", saveManualRound);
   document.querySelector("#clearManualRoundButton").addEventListener("click", clearManualRoundForm);
+  document.querySelector("#openManualRoundModalButton").addEventListener("click", () => setManualRoundModal(true));
+  document.querySelector("#closeManualRoundModalButton").addEventListener("click", () => setManualRoundModal(false));
   elements.roundNameInput.addEventListener("input", (event) => {
     state.roundName = event.target.value;
     saveState();
@@ -911,6 +1130,15 @@ function bindEvents() {
   elements.memoInput.addEventListener("input", saveState);
 
   elements.calculatorKeys.addEventListener("click", handleCalculatorInput);
+  elements.calculatorPanel.addEventListener("click", () => {
+    elements.calculatorPanel.focus();
+  });
+  elements.calculatorPanel.addEventListener("keydown", handleCalculatorKeydown);
+  elements.manualRoundModal.addEventListener("click", (event) => {
+    if (event.target === elements.manualRoundModal) {
+      setManualRoundModal(false);
+    }
+  });
 }
 
 function init() {
@@ -930,7 +1158,7 @@ function init() {
 
   renderManualRounds();
 
-  if (state.mode === "result" && state.result) {
+  if (state.mode === "result") {
     setMode("result");
   } else {
     setMode("solve");
