@@ -55,9 +55,11 @@ button {
 
 .app-shell {
   width: min(1520px, calc(100vw - 32px));
+  min-width: 450px;
   margin: 16px auto;
   height: calc(100vh - 32px);
   padding: 0;
+  overflow: hidden;
 }
 
 .eyebrow,
@@ -243,7 +245,7 @@ button {
 }
 
 .workspace.solve-layout {
-  grid-template-columns: minmax(520px, 1fr) 380px 340px;
+  grid-template-columns: minmax(0, 1fr) 380px 340px;
   justify-content: end;
   height: 100%;
   min-height: 100%;
@@ -271,6 +273,7 @@ button {
 .spacer-column {
   min-height: 100%;
   align-items: flex-start;
+  overflow: hidden;
 }
 
 .mode-switch-row {
@@ -898,7 +901,7 @@ button {
 
 @media (max-width: 1080px) {
   .workspace.solve-layout {
-    grid-template-columns: 430px 340px;
+    grid-template-columns: minmax(0, 1fr) 380px 340px;
   }
 }
 
@@ -917,7 +920,6 @@ button {
     align-items: stretch;
   }
 
-  .workspace.solve-layout,
   .result-grid,
   .result-detail-grid {
     grid-template-columns: 1fr;
@@ -931,14 +933,15 @@ button {
     align-items: stretch;
   }
 
-  .omr-column {
-    width: 100%;
+  .workspace.solve-layout {
+    grid-template-columns: minmax(0, 1fr) 380px 340px;
   }
 }
 
 @media (max-width: 520px) {
   .app-shell {
     width: calc(100vw - 16px);
+    min-width: 450px;
     margin: 8px auto;
     height: calc(100vh - 16px);
   }
