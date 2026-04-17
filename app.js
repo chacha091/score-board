@@ -61,6 +61,11 @@ const elements = {
   manualRoundModal: document.querySelector("#manualRoundModal"),
   manualRoundModalTitle: document.querySelector("#manualRoundModalTitle"),
   saveManualRoundButton: document.querySelector("#saveManualRoundButton"),
+  roundAnswersModal: document.querySelector("#roundAnswersModal"),
+  roundAnswersModalTitle: document.querySelector("#roundAnswersModalTitle"),
+  roundAnswersModalSummary: document.querySelector("#roundAnswersModalSummary"),
+  roundAnswersEmpty: document.querySelector("#roundAnswersEmpty"),
+  roundAnswersGrid: document.querySelector("#roundAnswersGrid"),
   timerMinutes: document.querySelector("#timerMinutes"),
   timerSeconds: document.querySelector("#timerSeconds"),
   memoTabButton: document.querySelector("#memoTabButton"),
@@ -275,6 +280,10 @@ function gradeExam() {
       accuracy,
       areaSummaries,
       source: "auto",
+      answerDetails: {
+        total: gradingCount,
+        comparison: comparison.map((item) => ({ ...item })),
+      },
     });
 
     renderResult();
@@ -540,6 +549,50 @@ function deleteRound(roundId) {
   saveState();
 }
 
+function setRoundAnswersModal(open) {
+  elements.roundAnswersModal.classList.toggle("hidden", !open);
+}
+
+function openRoundAnswersModal(roundId) {
+  const targetRound = state.roundHistory.find((round) => round.id === roundId);
+  if (!targetRound) {
+    return;
+  }
+
+  elements.roundAnswersModalTitle.textContent = `${targetRound.roundName} 답안`;
+  elements.roundAnswersGrid.innerHTML = "";
+
+  const comparison = targetRound.answerDetails?.comparison ?? [];
+  if (comparison.length === 0) {
+    elements.roundAnswersModalSummary.textContent =
+      targetRound.source === "manual"
+        ? "수동 회차는 입력 답안이 저장되지 않습니다."
+        : "기존 기록에는 답안 데이터가 저장되어 있지 않습니다.";
+    elements.roundAnswersEmpty.classList.remove("hidden");
+    setRoundAnswersModal(true);
+    return;
+  }
+
+  elements.roundAnswersModalSummary.textContent = `${comparison.length}문항 기준으로 저장된 내 답과 정답입니다.`;
+  elements.roundAnswersEmpty.classList.add("hidden");
+
+  const fragment = document.createDocumentFragment();
+  comparison.forEach((item) => {
+    const card = document.createElement("article");
+    card.className = `round-answer-card ${item.isCorrect ? "correct" : "wrong"}`;
+    card.innerHTML = `
+      <h4>${item.question}번</h4>
+      <p>내 답: ${item.userAnswer ?? "-"}</p>
+      <p>정답: ${item.correctAnswer}</p>
+      <p>${item.isCorrect ? "정답" : "오답"}</p>
+    `;
+    fragment.appendChild(card);
+  });
+
+  elements.roundAnswersGrid.appendChild(fragment);
+  setRoundAnswersModal(true);
+}
+
 function renderManualRounds() {
   elements.manualRoundList.innerHTML = "";
 
@@ -684,6 +737,7 @@ function buildManualRoundRecord(roundName, areaSummaries, existingRound = null) 
     accuracy,
     areaSummaries,
     source: existingRound?.source ?? "manual",
+    answerDetails: existingRound?.answerDetails ?? null,
   };
 }
 
@@ -1364,6 +1418,7 @@ function bindEvents() {
   });
   document.querySelector("#openManualRoundModalButton").addEventListener("click", () => openManualRoundModal());
   document.querySelector("#closeManualRoundModalButton").addEventListener("click", () => setManualRoundModal(false));
+  document.querySelector("#closeRoundAnswersModalButton").addEventListener("click", () => setRoundAnswersModal(false));
   elements.roundNameInput.addEventListener("input", (event) => {
     state.roundName = event.target.value;
     saveState();
@@ -1381,7 +1436,18 @@ function bindEvents() {
       setManualRoundModal(false);
     }
   });
+  elements.roundAnswersModal.addEventListener("click", (event) => {
+    if (event.target === elements.roundAnswersModal) {
+      setRoundAnswersModal(false);
+    }
+  });
   elements.manualRoundList.addEventListener("click", (event) => {
+    const answerButton = event.target.closest(".history-answer-button");
+    if (answerButton) {
+      openRoundAnswersModal(answerButton.dataset.roundId);
+      return;
+    }
+
     const editButton = event.target.closest(".history-edit-button");
     if (editButton) {
       openManualRoundModal(editButton.dataset.roundId);
@@ -1449,6 +1515,7 @@ function renderManualRounds() {
           <td rowspan="2">
             <div class="history-round-name">${round.roundName}</div>
             <div class="history-action-row">
+              <button class="ghost-button small-button history-answer-button" type="button" data-round-id="${round.id}">답안</button>
               <button class="ghost-button small-button history-edit-button" type="button" data-round-id="${round.id}">수정</button>
               <button class="ghost-button small-button history-delete-button" type="button" data-round-id="${round.id}">삭제</button>
             </div>

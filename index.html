@@ -229,6 +229,22 @@
           </div>
         </div>
       </div>
+
+      <div id="roundAnswersModal" class="modal-backdrop hidden">
+        <div class="panel modal-panel round-answers-modal-panel" role="dialog" aria-modal="true" aria-labelledby="roundAnswersModalTitle">
+          <div class="panel-title-row">
+            <div>
+              <h3 id="roundAnswersModalTitle">회차 답안 보기</h3>
+            </div>
+            <button id="closeRoundAnswersModalButton" class="text-button" type="button">닫기</button>
+          </div>
+          <div class="round-answers-modal-body">
+            <p id="roundAnswersModalSummary" class="help-copy"></p>
+            <div id="roundAnswersEmpty" class="empty-state hidden">저장된 답안 데이터가 없습니다.</div>
+            <div id="roundAnswersGrid" class="round-answers-grid"></div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <script src="./app.js"></script>

@@ -769,6 +769,7 @@ button {
   padding: 4px 8px;
 }
 
+.history-answer-button,
 .history-delete-button {
   min-width: 52px;
   padding: 4px 8px;
@@ -919,6 +920,50 @@ button {
   width: min(960px, calc(100vw - 96px));
   max-height: calc(100vh - 96px);
   overflow: auto;
+}
+
+.round-answers-modal-panel {
+  width: min(1120px, calc(100vw - 96px));
+}
+
+.round-answers-modal-body {
+  padding-top: 8px;
+}
+
+.round-answers-grid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+  max-height: min(62vh, 720px);
+  overflow: auto;
+}
+
+.round-answer-card {
+  padding: 10px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: #fff;
+  font-size: 0.78rem;
+}
+
+.round-answer-card.correct {
+  border-color: rgba(121, 183, 122, 0.45);
+  background: rgba(121, 183, 122, 0.1);
+}
+
+.round-answer-card.wrong {
+  border-color: rgba(214, 91, 99, 0.3);
+  background: var(--wrong-bg);
+}
+
+.round-answer-card h4,
+.round-answer-card p {
+  margin: 0;
+}
+
+.round-answer-card p + p {
+  margin-top: 6px;
 }
 
 @media (max-width: 1080px) {
