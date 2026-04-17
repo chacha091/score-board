@@ -15,21 +15,20 @@
   <body>
     <div class="app-shell">
       <main id="workspace" class="workspace solve-layout">
-        <section class="spacer-column">
-          <div class="hero-actions mode-switch-row">
-            <button id="solveModeButton" class="ghost-button active" type="button">OMR 모드</button>
-            <button id="resultModeButton" class="ghost-button" type="button">결과 모드</button>
-          </div>
-        </section>
-
         <section class="omr-column">
           <div class="panel panel-header">
-            <div>
-              <h2>OMR 답안지</h2>
+            <div class="panel-header-main">
+              <div>
+                <h2>OMR 답안지</h2>
+              </div>
+              <div class="panel-actions panel-header-actions">
+                <button id="openGradingButton" class="primary-button" type="button">채점하기</button>
+                <button id="resetAnswersButton" class="secondary-button" type="button">답안 초기화</button>
+              </div>
             </div>
-            <div class="panel-actions">
-              <button id="openGradingButton" class="primary-button" type="button">채점하기</button>
-              <button id="resetAnswersButton" class="secondary-button" type="button">답안 초기화</button>
+            <div class="panel-actions mode-switch-row">
+              <button id="solveModeButton" class="ghost-button active" type="button">OMR 모드</button>
+              <button id="resultModeButton" class="ghost-button" type="button">채점 모드</button>
             </div>
           </div>
 
@@ -61,7 +60,7 @@
           </section>
 
           <section class="panel answer-sheet-panel">
-            <div class="panel-title-row">
+            <div class="panel-title-row answer-sheet-title-row">
               <div>
                 <p class="section-label">OMR</p>
               </div>
