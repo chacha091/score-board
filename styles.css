@@ -418,6 +418,12 @@ button {
   align-items: center;
 }
 
+.answer-row-section-start {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line-strong);
+}
+
 .question-index {
   font-weight: 800;
   color: var(--primary-strong);

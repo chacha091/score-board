@@ -110,6 +110,9 @@ function createAnswerSheet() {
   for (let question = 1; question <= QUESTION_COUNT; question += 1) {
     const row = document.createElement("div");
     row.className = "answer-row";
+    if (question % 20 === 1 && question !== 1) {
+      row.classList.add("answer-row-section-start");
+    }
     row.dataset.question = String(question);
 
     const index = document.createElement("div");
