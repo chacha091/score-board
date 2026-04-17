@@ -142,10 +142,37 @@ function createAnswerSheet() {
 }
 
 function renderAnswerSelection() {
+  const comparisonByQuestion = new Map(
+    (state.result?.comparison ?? []).map((item) => [item.question, item]),
+  );
+
+  document.querySelectorAll(".answer-row").forEach((row) => {
+    const question = Number(row.dataset.question);
+    const comparison = comparisonByQuestion.get(question) ?? null;
+    const isSelectedWrong =
+      comparison !== null && comparison.userAnswer !== null && comparison.isCorrect === false;
+    const isUnansweredWrong =
+      comparison !== null && comparison.userAnswer === null && comparison.isCorrect === false;
+    const index = row.querySelector(".question-index");
+
+    row.classList.remove("answer-row-unanswered-wrong");
+    index?.classList.toggle("question-index-selected-wrong", isSelectedWrong);
+    index?.classList.toggle("question-index-unanswered-wrong", isUnansweredWrong);
+  });
+
   document.querySelectorAll(".choice-button").forEach((button) => {
     const question = Number(button.dataset.question);
     const choice = Number(button.dataset.choice);
-    button.classList.toggle("selected", state.userAnswers[question] === choice);
+    const isSelected = state.userAnswers[question] === choice;
+    const comparison = comparisonByQuestion.get(question) ?? null;
+    const isWrongSelected =
+      isSelected &&
+      comparison !== null &&
+      comparison.userAnswer === choice &&
+      comparison.isCorrect === false;
+
+    button.classList.toggle("selected", isSelected);
+    button.classList.toggle("selected-wrong", isWrongSelected);
   });
 
   const answered = Object.keys(state.userAnswers).length;
@@ -1155,16 +1182,19 @@ function setupCanvas() {
 
   function getPosition(event) {
     const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
     if ("touches" in event && event.touches.length > 0) {
       return {
-        x: event.touches[0].clientX - rect.left,
-        y: event.touches[0].clientY - rect.top,
+        x: (event.touches[0].clientX - rect.left) * scaleX,
+        y: (event.touches[0].clientY - rect.top) * scaleY,
       };
     }
 
     return {
-      x: event.clientX - rect.left,
-      y: event.clientY - rect.top,
+      x: (event.clientX - rect.left) * scaleX,
+      y: (event.clientY - rect.top) * scaleY,
     };
   }
 

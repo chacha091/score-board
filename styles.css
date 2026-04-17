@@ -431,6 +431,14 @@ button {
   font-size: 0.84rem;
 }
 
+.question-index-selected-wrong {
+  color: #a63b47;
+}
+
+.question-index-unanswered-wrong {
+  color: #d27a1e;
+}
+
 .choice-button {
   width: 22px;
   height: 22px;
@@ -448,6 +456,12 @@ button {
   background: var(--primary);
   border-color: var(--primary);
   color: var(--primary-strong);
+}
+
+.choice-button.selected-wrong {
+  background: #ffdce1;
+  border-color: rgba(214, 91, 99, 0.55);
+  color: #a63b47;
 }
 
 .status-panel {
