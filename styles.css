@@ -387,11 +387,14 @@ button {
 
 .omr-column {
   height: 100%;
+  min-height: 0;
   overflow: hidden;
 }
 
 .answer-sheet-panel {
   flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
   min-height: 0;
   overflow: hidden;
 }
@@ -399,8 +402,9 @@ button {
 .answer-grid {
   display: flex;
   flex-direction: column;
+  flex: 1 1 auto;
   gap: 6px;
-  height: calc(100% - 30px);
+  min-height: 0;
   overflow: auto;
   padding-right: 4px;
   margin-top: 8px;
@@ -747,7 +751,19 @@ button {
   margin-bottom: 6px;
 }
 
+.history-action-row {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
 .history-edit-button {
+  min-width: 52px;
+  padding: 4px 8px;
+}
+
+.history-delete-button {
   min-width: 52px;
   padding: 4px 8px;
 }

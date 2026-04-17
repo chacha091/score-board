@@ -20,7 +20,6 @@ const state = {
   result: null,
   roundHistory: [],
   manualRounds: [],
-  wrongOnlyFilter: false,
   timer: {
     remaining: TIMER_SECONDS,
     running: false,
@@ -375,12 +374,7 @@ function renderAreaSummaries(areaSummaries) {
 
 function renderComparisonGrid(comparison) {
   elements.comparisonGrid.innerHTML = "";
-  const retryWrongButton = document.querySelector("#retryWrongButton");
-
-  const filtered = state.wrongOnlyFilter ? comparison.filter((item) => !item.isCorrect) : comparison;
-  retryWrongButton.textContent = state.wrongOnlyFilter ? "전체 문항 보기" : "오답만 다시 보기";
-
-  if (filtered.length === 0) {
+  if (comparison.length === 0) {
     const empty = document.createElement("p");
     empty.className = "empty-state";
     empty.textContent = "표시할 문항이 없습니다.";
@@ -390,7 +384,7 @@ function renderComparisonGrid(comparison) {
 
   const fragment = document.createDocumentFragment();
 
-  filtered.forEach((item) => {
+  comparison.forEach((item) => {
     const card = document.createElement("article");
     card.className = `comparison-card ${item.isCorrect ? "correct" : "wrong"}`;
 
@@ -518,6 +512,29 @@ function saveManualRound() {
   } catch (error) {
     elements.manualRoundError.textContent = error.message;
   }
+}
+
+function deleteRound(roundId) {
+  const targetRound = state.roundHistory.find((round) => round.id === roundId);
+  if (!targetRound) {
+    return;
+  }
+
+  const shouldDelete = window.confirm(`"${targetRound.roundName}" 회차를 삭제할까요?`);
+  if (!shouldDelete) {
+    return;
+  }
+
+  state.roundHistory = state.roundHistory.filter((round) => round.id !== roundId);
+  state.manualRounds = state.manualRounds.filter((round) => round.id !== roundId);
+
+  if (state.editingRoundId === roundId) {
+    clearManualRoundForm();
+    setManualRoundModal(false);
+  }
+
+  renderManualRounds();
+  saveState();
 }
 
 function renderManualRounds() {
@@ -952,7 +969,6 @@ function resetAnswers() {
   state.roundName = "";
   state.userAnswers = {};
   state.result = null;
-  state.wrongOnlyFilter = false;
   showGradingPanel(false);
   elements.inputError.textContent = "";
   elements.roundNameInput.value = "";
@@ -1018,7 +1034,6 @@ function saveState() {
       answerKeyInput: elements.answerKeyInput.value,
       memoInput: elements.memoInput.value,
       gradingPanelOpen: !elements.gradingPanel.classList.contains("hidden"),
-      wrongOnlyFilter: state.wrongOnlyFilter,
       result: state.result,
       timerRemaining: state.timer.remaining,
     };
@@ -1043,7 +1058,6 @@ function hydrateState() {
     state.answerKey = saved.answerKey ?? [];
     state.roundHistory = saved.roundHistory ?? saved.manualRounds ?? [];
     state.manualRounds = saved.manualRounds ?? [];
-    state.wrongOnlyFilter = Boolean(saved.wrongOnlyFilter);
     state.result = saved.result ?? null;
     state.timer.remaining =
       typeof saved.timerRemaining === "number" ? saved.timerRemaining : TIMER_SECONDS;
@@ -1329,14 +1343,6 @@ function bindEvents() {
     saveState();
   });
   document.querySelector("#backToSolveButton").addEventListener("click", () => setMode("solve"));
-  document.querySelector("#retryWrongButton").addEventListener("click", () => {
-    if (!state.result) {
-      return;
-    }
-    state.wrongOnlyFilter = !state.wrongOnlyFilter;
-    renderComparisonGrid(state.result.comparison);
-    saveState();
-  });
 
   elements.solveModeButton.addEventListener("click", () => setMode("solve"));
   elements.resultModeButton.addEventListener("click", () => setMode("result"));
@@ -1373,11 +1379,17 @@ function bindEvents() {
     }
   });
   elements.manualRoundList.addEventListener("click", (event) => {
-    const button = event.target.closest(".history-edit-button");
-    if (!button) {
+    const editButton = event.target.closest(".history-edit-button");
+    if (editButton) {
+      openManualRoundModal(editButton.dataset.roundId);
       return;
     }
-    openManualRoundModal(button.dataset.roundId);
+
+    const deleteButton = event.target.closest(".history-delete-button");
+    if (!deleteButton) {
+      return;
+    }
+    deleteRound(deleteButton.dataset.roundId);
   });
 }
 
@@ -1433,7 +1445,10 @@ function renderManualRounds() {
         <tr>
           <td rowspan="2">
             <div class="history-round-name">${round.roundName}</div>
-            <button class="ghost-button small-button history-edit-button" type="button" data-round-id="${round.id}">수정</button>
+            <div class="history-action-row">
+              <button class="ghost-button small-button history-edit-button" type="button" data-round-id="${round.id}">수정</button>
+              <button class="ghost-button small-button history-delete-button" type="button" data-round-id="${round.id}">삭제</button>
+            </div>
           </td>
           ${summaryCells}
           <td rowspan="2">${round.score}</td>
