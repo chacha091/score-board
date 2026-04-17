@@ -260,9 +260,9 @@ function gradeExam() {
       });
     }
 
-    const wrong = gradingCount - correct;
-    const accuracy = Math.round((correct / gradingCount) * 100);
     const solved = comparison.filter((item) => item.userAnswer !== null).length;
+    const wrong = gradingCount - correct;
+    const accuracy = solved > 0 ? Math.round((correct / solved) * 100) : 0;
     const areaSummaries = AREA_GROUPS.map((area) => {
       const areaQuestions = comparison.filter(
         (item) => item.question >= area.start && item.question <= area.end,
@@ -271,7 +271,7 @@ function gradeExam() {
       const correctCount = areaQuestions.filter((item) => item.isCorrect).length;
       const wrongNumbers = areaQuestions.filter((item) => !item.isCorrect).map((item) => item.question);
       const areaTotal = areaQuestions.length;
-      const areaAccuracy = areaTotal > 0 ? Math.round((correctCount / areaTotal) * 100) : 0;
+      const areaAccuracy = solvedCount > 0 ? Math.round((correctCount / solvedCount) * 100) : 0;
 
       return {
         ...area,
