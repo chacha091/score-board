@@ -744,12 +744,17 @@ button {
 .manual-round-list {
   margin-top: 0;
   max-height: none;
-  height: 100%;
+  height: auto;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow: auto;
 }
 
 .manual-history-panel {
   padding: 14px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .modal-panel {
@@ -882,19 +887,19 @@ button {
 
 .comparison-grid {
   margin-top: 10px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(124px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 8px;
   max-height: 200px;
   overflow: auto;
 }
 
 .comparison-card {
-  padding: 10px;
-  border-radius: 18px;
+  padding: 12px 16px;
+  border-radius: 10px;
   border: 1px solid var(--line);
   background: #fff;
-  font-size: 0.78rem;
+  font-size: 0.92rem;
 }
 
 .comparison-card.correct {
@@ -907,13 +912,32 @@ button {
   background: var(--wrong-bg);
 }
 
-.comparison-card h4,
-.comparison-card p {
-  margin: 0;
+.comparison-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  line-height: 1.2;
 }
 
-.comparison-card p + p {
-  margin-top: 6px;
+.comparison-question,
+.comparison-answer,
+.comparison-correct {
+  font-weight: 700;
+}
+
+.comparison-question,
+.comparison-answer {
+  color: #d65b63;
+}
+
+.comparison-arrow {
+  color: var(--primary-strong);
+  font-weight: 700;
+}
+
+.comparison-correct {
+  color: var(--primary-strong);
 }
 
 .result-panel {

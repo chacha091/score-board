@@ -1591,3 +1591,32 @@ function renderManualRounds() {
     </table>
   `;
 }
+
+function renderComparisonGrid(comparison) {
+  elements.comparisonGrid.innerHTML = "";
+  if (comparison.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "empty-state";
+    empty.textContent = "표시할 문항이 없습니다.";
+    elements.comparisonGrid.appendChild(empty);
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+
+  comparison.forEach((item) => {
+    const card = document.createElement("article");
+    card.className = `comparison-card ${item.isCorrect ? "correct" : "wrong"}`;
+    card.innerHTML = `
+      <div class="comparison-line">
+        <span class="comparison-question">${item.question}번</span>
+        <span class="comparison-answer">내 답: ${item.userAnswer ?? "-"}</span>
+        <span class="comparison-arrow">→</span>
+        <span class="comparison-correct">정답: ${item.correctAnswer}</span>
+      </div>
+    `;
+    fragment.appendChild(card);
+  });
+
+  elements.comparisonGrid.appendChild(fragment);
+}
